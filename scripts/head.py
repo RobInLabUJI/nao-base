@@ -21,9 +21,13 @@ def head():
         NAO_IP = rospy.get_param('nao_ip')
     else:
         NAO_IP = "127.0.0.1"
+    if rospy.has_param('nao_port'):
+        NAO_PORT = rospy.get_param('nao_port')
+    else:
+        NAO_PORT = 9559
 
     global motionProxy
-    motionProxy = ALProxy("ALMotion", NAO_IP, 9559)
+    motionProxy = ALProxy("ALMotion", NAO_IP, NAO_PORT)
     motionProxy.setStiffnesses("Head", 1.0)
     rospy.spin()
 
