@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 import rospy
-from geometry_msgs.msg import Vector3
+from std_msgs.msg import Float64MultiArray
 from naoqi import ALProxy
-#import vision_definitions
 
 def tracker_loop():
 
     rospy.init_node('vision', anonymous=True)
-    pub = rospy.Publisher('red_ball', Vector3, queue_size=10)
+    pub = rospy.Publisher('red_ball', Float64MultiArray, queue_size=10)
 
     if rospy.has_param('nao_ip'):
         NAO_IP = rospy.get_param('nao_ip')
@@ -29,21 +28,22 @@ def tracker_loop():
     tracker.setMode(mode)
     tracker.track(targetName)
 
+    memValue = "redBallDetected"
     try:
-      memoryProxy = ALProxy("ALMemory", IP, PORT)
+      memoryProxy = ALProxy("ALMemory", NAO_IP, NAO_PORT)
     except Exception, e:
       print "Error when creating memory proxy:"
       print str(e)
       exit(1)
 
     r = rospy.Rate(10) # 10hz
-    v = Vector3()
     while not rospy.is_shutdown():
-        p = tracker.getTargetPosition()
-        v.x = p[0]
-        v.y = p[1]
-        v.z = p[2]
-        pub.publish(v)
+        val = memoryProxy.getData(memValue)
+        data = [val[1][0], val[1][1], val[1][2], val[1][3]]
+        msg = Float64MultiArray(data=data)
+        pub.publish(msg)
+
+        
         r.sleep()
 
 if __name__ == '__main__':
