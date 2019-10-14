@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 import rospy
-from sensor_msgs.msg import Image
+from geometry_msgs.msg import Vector3
 from naoqi import ALProxy
-import vision_definitions
+#import vision_definitions
 
 def tracker_loop():
 
     rospy.init_node('vision', anonymous=True)
-    pub = rospy.Publisher('camera/top/camera/image_raw', Image, queue_size=10)
+    pub = rospy.Publisher('red_ball', Vector3, queue_size=10)
 
     if rospy.has_param('nao_ip'):
         NAO_IP = rospy.get_param('nao_ip')
@@ -29,8 +29,21 @@ def tracker_loop():
     tracker.setMode(mode)
     tracker.track(targetName)
 
+    try:
+      memoryProxy = ALProxy("ALMemory", IP, PORT)
+    except Exception, e:
+      print "Error when creating memory proxy:"
+      print str(e)
+      exit(1)
+
     r = rospy.Rate(10) # 10hz
+    v = Vector3()
     while not rospy.is_shutdown():
+        p = tracker.getTargetPosition()
+        v.x = p[0]
+        v.y = p[1]
+        v.z = p[2]
+        pub.publish(v)
         r.sleep()
 
 if __name__ == '__main__':
