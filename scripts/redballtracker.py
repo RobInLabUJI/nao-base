@@ -5,7 +5,7 @@ from naoqi import ALProxy
 
 def tracker_loop():
 
-    rospy.init_node('vision', anonymous=True)
+    rospy.init_node('redball_tracker', anonymous=True)
     pub = rospy.Publisher('red_ball', Float64MultiArray, queue_size=10)
 
     if rospy.has_param('nao_ip'):
@@ -17,16 +17,14 @@ def tracker_loop():
     else:
         NAO_PORT = 9559
     
-    motionProxy = ALProxy("ALMotion", NAO_IP, NAO_PORT)
-    motionProxy.setStiffnesses("Head", 1.0)
-
-    tracker = ALProxy("ALTracker", NAO_IP, NAO_PORT)
-    targetName = "RedBall"
-    diameterOfBall = 0.06
-    tracker.registerTarget(targetName, diameterOfBall)
-    mode = "Head"
-    tracker.setMode(mode)
-    tracker.track(targetName)
+    try:
+      redBallProxy = ALProxy("ALRedBallDetection", NAO_IP, NAO_PORT)
+      period = 100
+      redBallProxy.subscribe("Test_Red_Ball", period, 0.0 )
+    except Exception, e:
+      print "Error when creating redball detection proxy:"
+      print str(e)
+      exit(1)
 
     memValue = "redBallDetected"
     try:
@@ -43,7 +41,6 @@ def tracker_loop():
         msg = Float64MultiArray(data=data)
         pub.publish(msg)
 
-        
         r.sleep()
 
 if __name__ == '__main__':
