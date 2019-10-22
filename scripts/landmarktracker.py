@@ -19,6 +19,8 @@ def tracker_loop():
     
     try:
       landMarkProxy = ALProxy("ALLandMarkDetection", NAO_IP, NAO_PORT)
+      period = 500
+      landMarkProxy.subscribe("Test_Mark", period, 0.0 )
     except Exception, e:
       print "Error when creating landmark detection proxy:"
       print str(e)
