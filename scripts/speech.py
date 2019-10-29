@@ -13,6 +13,7 @@ def speech():
 
     rospy.init_node('speech', anonymous=True)
     rospy.Subscriber('speech', String, callback)
+    pub = rospy.Publisher('word_recognized', Float64MultiArray, queue_size=10)
 
     if rospy.has_param('nao_ip'):
         NAO_IP = rospy.get_param('nao_ip')
@@ -26,8 +27,18 @@ def speech():
 
     global tts
     tts = ALProxy('ALTextToSpeech', NAO_IP, NAO_PORT)
+    asr = ALProxy("ALSpeechRecognition", NAO_IP, NAO_PORT)
 
-    rospy.spin()
+    asr.setLanguage("English")
+    vocabulary = ["yes", "no", "please"]
+    asr.setVocabulary(vocabulary, False)
+    asr.subscribe("Test_ASR")
+
+    r = rospy.Rate(10) # 10hz
+    while not rospy.is_shutdown():
+        #pub.publish(msg)
+        r.sleep()
+    asr.unsubscribe("Test_ASR")
 
 if __name__ == '__main__':
     speech()
