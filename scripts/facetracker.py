@@ -37,10 +37,7 @@ def tracker_loop():
     r = rospy.Rate(2) # 2hz
     while not rospy.is_shutdown():
         val = memoryProxy.getData(memValue)
-        if(val and isinstance(val, list) and len(val) >= 2):
-
-            # We detected naomarks !
-            # For each mark, we can read its shape info and ID.
+        if(val and isinstance(val, list) and len(val) == 5):
 
             # First Field = TimeStamp.
             timeStamp = val[0]
@@ -49,18 +46,17 @@ def tracker_loop():
             faceInfoArray = val[1]
 
             try:
-              # Browse the faceInfoArray to get info on each detected mark.
-              for faceInfo in faceInfoArray:
-
+              # Browse the faceInfoArray to get info on each detected face.
+              for faceInfo in faceInfoArray[:-1]:
                 # First Field = Shape info.
                 faceShapeInfo = faceInfo[0]
 
                 # Second Field = Extra info (empty for now).
                 faceExtraInfo = faceInfo[1]
-                print "mark  ID: %d" % (markExtraInfo[0])
+                print "face  ID: %d" % (faceExtraInfo[0])
                 print "  alpha %.3f - beta %.3f" % (faceShapeInfo[1], faceShapeInfo[2])
                 print "  width %.3f - height %.3f" % (faceShapeInfo[3], faceShapeInfo[4])
-                data = [faceShapeInfo[0], faceShapeInfo[1], faceShapeInfo[2], faceShapeInfo[3], faceShapeInfo[4]]
+                data = [float(faceExtraInfo[0]), faceShapeInfo[1], faceShapeInfo[2], faceShapeInfo[3], faceShapeInfo[4]]
                 msg = Float64MultiArray(data=data)
                 pub.publish(msg)
 
@@ -70,6 +66,7 @@ def tracker_loop():
               print "Error msg %s" % (str(e))
         
         r.sleep()
+    faceProxy.unsubscribe("Test_Face")
 
 if __name__ == '__main__':
     tracker_loop()
